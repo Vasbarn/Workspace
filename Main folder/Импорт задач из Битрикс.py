@@ -11,7 +11,7 @@ def get_task(dict_users: dict) -> dict:
 	headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 	num = 0
 	result = []
-	for type_filter in ["CREATED_BY", "RESPONSIBLE_ID"]:
+	for type_filter in ["CREATED_BY", "RESPONSIBLE_ID", "ACCOMPLICE"]:
 		data = {
 			'filter': {
 				type_filter: list(dict_users.keys()),
@@ -20,7 +20,7 @@ def get_task(dict_users: dict) -> dict:
 			},
 			'select': [
 				'ID', 'TITLE', 'DESCRIPTION', 'STATUS', 'CREATED_BY', 'CREATED_DATE', "DEADLINE",
-				'RESPONSIBLE_ID',  'COMMENTS_COUNT', 'TIME_ESTIMATE', 'TIME_SPENT_IN_LOGS',
+				'RESPONSIBLE_ID', "ACCOMPLICES",  'COMMENTS_COUNT', 'TIME_ESTIMATE', 'TIME_SPENT_IN_LOGS',
 			],
 			'start': num
 		}
@@ -37,6 +37,13 @@ def get_task(dict_users: dict) -> dict:
 		if not result_dict.get(elem.get("id")):
 			elem["creator"] = elem["creator"]["name"]
 			elem["responsible"] = elem["responsible"]["name"]
+			accomplices_list = []
+			if isinstance(elem["accomplicesData"], dict):
+				for id_key in elem["accomplicesData"].keys():
+					if id_key in list(dict_users.keys()):
+						accomplices_list.append(id_key)
+				elem["accomplicesData"] = accomplices_list
+
 			result_dict[elem.get("id")] = elem
 	return result_dict
 
