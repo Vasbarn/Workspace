@@ -12,7 +12,6 @@ def get_task(dict_users: dict) -> dict:
 	num = 0
 	result = []
 	for type_filter in ["CREATED_BY", "RESPONSIBLE_ID"]:
-		print(type_filter)
 		data = {
 			'filter': {
 				type_filter: list(dict_users.keys()),
@@ -75,15 +74,14 @@ def get_workers() -> dict:
 	result_dict = dict()
 	for elem in result:
 		if not result_dict.get(elem.get("ID")) and elem.get("ACTIVE") and int(elem.get("ID")) != 1:
-			print(elem)
 			result_dict[elem.get("ID")] = elem
 	return result_dict
 
 
 if __name__ == "__main__":
-	logging.basicConfig(level=logging.INFO)
+	logging.basicConfig(level=logging.WARNING)
 	logger_for_BX = logging.getLogger(__name__)
-	logger_for_BX.setLevel(logging.DEBUG)
+	logger_for_BX.setLevel(logging.WARNING)
 	users: dict = get_workers()
 	tasks = get_task(users)
 	df = pd.DataFrame(tasks.values())
