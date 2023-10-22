@@ -1,6 +1,7 @@
 import requests
 import json
 import logging
+import pandas as pd
 
 
 def get_task(dict_users: dict) -> dict:
@@ -15,7 +16,8 @@ def get_task(dict_users: dict) -> dict:
 		data = {
 			'filter': {
 				type_filter: list(dict_users.keys()),
-				"REPLICATE": 'N'
+				"REPLICATE": 'N',
+				"REAL_STATUS": [1, 2, 3]
 			},
 			'select': [
 				'ID', 'TITLE', 'DESCRIPTION', 'STATUS', 'CREATED_BY', 'CREATED_DATE',
@@ -84,5 +86,7 @@ if __name__ == "__main__":
 	logger_for_BX.setLevel(logging.DEBUG)
 	users: dict = get_workers()
 	tasks = get_task(users)
-	with open("Данные по задачам и пользователям.json", "w", encoding="utf-8") as file:
-		file.write(json.dumps(tasks, ensure_ascii=False))
+	df = pd.DataFrame(tasks.values())
+
+	# with open("Данные по задачам и пользователям.json", "w", encoding="utf-8") as file:
+	# 	file.write(json.dumps(tasks, ensure_ascii=False))
