@@ -20,8 +20,7 @@ def get_task(dict_users: dict) -> dict:
 			},
 			'select': [
 				'ID', 'TITLE', 'DESCRIPTION', 'STATUS', 'CREATED_BY', 'CREATED_DATE',
-				'RESPONSIBLE_ID', 'CLOSED_DATE', 'DATE_START', 'DEADLINE', 'COMMENTS_COUNT',
-				'TIME_ESTIMATE', 'TIME_SPENT_IN_LOGS',
+				'RESPONSIBLE_ID',  'COMMENTS_COUNT', 'TIME_ESTIMATE', 'TIME_SPENT_IN_LOGS',
 			],
 			'start': num
 		}
@@ -58,7 +57,8 @@ def get_workers() -> dict:
 	num = 0
 	data = {
 		'filter': {
-			"UF_DEPARTMENT": list_departament
+			"UF_DEPARTMENT": list_departament,
+			"ACTIVE": True
 		},
 		'start': num
 	}
@@ -73,7 +73,7 @@ def get_workers() -> dict:
 			result.extend(response.get("result"))
 	result_dict = dict()
 	for elem in result:
-		if not result_dict.get(elem.get("ID")) and elem.get("ACTIVE") and int(elem.get("ID")) != 1:
+		if not result_dict.get(elem.get("ID")) and int(elem.get("ID")) != 1:
 			result_dict[elem.get("ID")] = elem
 	return result_dict
 
@@ -82,9 +82,10 @@ if __name__ == "__main__":
 	logging.basicConfig(level=logging.WARNING)
 	logger_for_BX = logging.getLogger(__name__)
 	logger_for_BX.setLevel(logging.WARNING)
-	users: dict = get_workers()
-	tasks = get_task(users)
-	df = pd.DataFrame(tasks.values())
+	users_it: dict = get_workers()
+	users_it_df = pd.DataFrame(users_it.values())
+	tasks = get_task(users_it)
+	tasks_df = pd.DataFrame(tasks.values())
 
 	# with open("Данные по задачам и пользователям.json", "w", encoding="utf-8") as file:
 	# 	file.write(json.dumps(tasks, ensure_ascii=False))
