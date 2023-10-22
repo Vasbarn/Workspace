@@ -19,7 +19,7 @@ def get_task(dict_users: dict) -> dict:
 				"REAL_STATUS": [1, 2, 3]
 			},
 			'select': [
-				'ID', 'TITLE', 'DESCRIPTION', 'STATUS', 'CREATED_BY', 'CREATED_DATE',
+				'ID', 'TITLE', 'DESCRIPTION', 'STATUS', 'CREATED_BY', 'CREATED_DATE', "DEADLINE",
 				'RESPONSIBLE_ID',  'COMMENTS_COUNT', 'TIME_ESTIMATE', 'TIME_SPENT_IN_LOGS',
 			],
 			'start': num
@@ -35,6 +35,8 @@ def get_task(dict_users: dict) -> dict:
 		result_dict = dict()
 	for elem in result:
 		if not result_dict.get(elem.get("id")):
+			elem["creator"] = elem["creator"]["name"]
+			elem["responsible"] = elem["responsible"]["name"]
 			result_dict[elem.get("id")] = elem
 	return result_dict
 
