@@ -139,7 +139,6 @@ class HDDir:
         print(f"{key} завершение копирования в {t2} | Длительность {round((t2 - t1).total_seconds() / 60, 3)} минут")
 
 
-
 if __name__ == "__main__":
     proc = HDDir()
     proc.del_old(num=3, mode="usb")  # num=3, mode="usb"
