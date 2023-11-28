@@ -1,5 +1,6 @@
 import os
-
+import shutil
+from threading import Thread
 
 class HDDir:
     def __init__(self):
@@ -12,7 +13,7 @@ class HDDir:
         }
 
         self.__path_on_70_main = 2 * os.sep + os.path.join("192.168.8.70", "Backup")
-        self.__path_on_62_main = 2 * os.sep + os.path.join("192.168.8.62","e$","Data", "Backup")
+        self.__path_on_62_main = 2 * os.sep + os.path.join("192.168.8.62", "e$", "Data", "Backup")
         self.__dir_back__with_path = {
             "Бухгалтерия": os.path.join(self.__path_on_70_main, "accounting3"),
             "Бухгалтерия 2": os.path.join(self.__path_on_70_main, "accounting_black"),
@@ -27,8 +28,11 @@ class HDDir:
         self.__prefix_ot_soft = "ot-soft_backup_"
         self.__prefix_trade = "trade_backup_"
 
-    def get_all_wanted_files(self) -> dict:
-        """Собираем все файлы на флешке в папках которые есть. Для последующего удаления"""
+    def get_all_wanted_files_on_usb(self) -> dict:
+        """
+        Собираем все файлы на флешке в папках которые есть. Для последующего удаления
+        :return: result: dict dictionary need files
+        """
         result = dict()
         for key, value in self.__dir_hd_with_path.items():
             if key == "Бухгалтерия":
@@ -51,21 +55,11 @@ class HDDir:
                 result["Торговля"] = list(map(lambda file_name: os.path.join(value, file_name), data))
         return result
 
-    def del_old(self):
-        """Удаление старых файлов на флешке, при условии что в папке больше трех файлов подходящих под отбор"""
-        files = self.get_all_wanted_files()
-        for key, value in files.items():
-            temp = dict()
-            if len(value) > 3:
-                for path_file in value:
-                    date_create = os.path.getctime(path_file)
-                    temp[date_create] = path_file
-                temp = dict(sorted(temp.items(), key=lambda x: x[0], reverse=True)[3:])
-                for path_file in temp.values():
-                    os.remove(path_file)
-
-    def start_copy(self):
-        """Возвращает список нужны файлов в директории где бекапы"""
+    def get_all_wanted_files_disk(self):
+        """
+        Возвращает список нужны файлов в директории где бекапы
+        :return: result: dict dictionary need files
+        """
         result = dict()
         for key, value in self.__dir_back__with_path.items():
             if key == "Бухгалтерия":
@@ -90,9 +84,53 @@ class HDDir:
                 result[key] = list(map(lambda file_name: os.path.join(value, file_name), data))
         return result
 
+    def del_old(self, num: int,  mode: str = "usb") -> list:
+        """
+        Удаление старых файлов, либо на диске, либо на флешке
+        :param mode: string only 2 state = usb or hd
+        :param num: int The number of files to remove
+        :return: result: list list deleted files
+        """
+        result = []
+        if mode == "usb":
+            files = self.get_all_wanted_files_on_usb()
+        elif mode == "hd":
+            files = self.get_all_wanted_files_disk()
+        else:
+            raise ValueError
+        for key, value in files.items():
+            temp = dict()
+            if len(value) > num:
+                for path_file in value:
+                    date_create = os.path.getctime(path_file)
+                    temp[date_create] = path_file
+                temp = dict(sorted(temp.items(), key=lambda x: x[0], reverse=True)[num:])
+                for path_file in temp.values():
+                    result.append(path_file)
+                    os.remove(path_file)
+        return result
+
+    def start_copy(self):
+        result = dict()
+        for key, value in self.get_all_wanted_files_disk().items():
+            temp = dict()
+            for path_file in value:
+                date_create = os.path.getctime(path_file)
+                temp[date_create] = path_file
+            date, path = sorted(temp.items(), key=lambda x: x[0], reverse=True)[0]
+            name_file = path.rsplit(os.sep, 1)[-1]
+            if key in ["Бухгалтерия", "ЗУП", "Охрана труда", "Торговля"]:
+                new_full_path = os.path.join(self.__dir_hd_with_path.get(key), name_file)
+                if not os.path.exists(new_full_path):
+                    Thread(target=shutil.copy, args=(path, new_full_path)).start()
+            elif key == "Бухгалтерия 2":
+                new_full_path = os.path.join(self.__dir_hd_with_path.get("Бухгалтерия"), name_file)
+                if not os.path.exists(new_full_path):
+                    Thread(target=shutil.copy, args=(path, new_full_path)).start()
+
+
 if __name__ == "__main__":
     proc = HDDir()
-    # proc.del_old()
+    proc.del_old(num=8, mode="usb")  # num=3, mode="usb"
+    proc.del_old(num=8, mode="hd")  # num=8, mode="hd"
     proc.start_copy()
-
-
