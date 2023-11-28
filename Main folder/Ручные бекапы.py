@@ -1,6 +1,7 @@
 import os
 import shutil
 from threading import Thread
+from datetime import datetime
 
 class HDDir:
     def __init__(self):
@@ -120,17 +121,27 @@ class HDDir:
             date, path = sorted(temp.items(), key=lambda x: x[0], reverse=True)[0]
             name_file = path.rsplit(os.sep, 1)[-1]
             if key in ["Бухгалтерия", "ЗУП", "Охрана труда", "Торговля"]:
-                new_full_path = os.path.join(self.__dir_hd_with_path.get(key), name_file)
-                if not os.path.exists(new_full_path):
-                    Thread(target=shutil.copy, args=(path, new_full_path)).start()
+                # new_full_path = os.path.join(self.__dir_hd_with_path.get(key), name_file)
+                # if not os.path.exists(new_full_path):
+                #     Thread(target=self.my_copy, args=(path, new_full_path, key)).start()
+                continue
             elif key == "Бухгалтерия 2":
                 new_full_path = os.path.join(self.__dir_hd_with_path.get("Бухгалтерия"), name_file)
                 if not os.path.exists(new_full_path):
-                    Thread(target=shutil.copy, args=(path, new_full_path)).start()
+                    Thread(target=self.my_copy, args=(path, new_full_path, key)).start()
+
+    @staticmethod
+    def my_copy(path, new_full_path, key):
+        t1 = datetime.now()
+        print(f"{key} начало копирования в {t1}")
+        shutil.copy(path, new_full_path)
+        t2 = datetime.now()
+        print(f"{key} завершение копирования в {t2} | Длительность {round((t2 - t1).total_seconds() / 60, 3)} минут")
+
 
 
 if __name__ == "__main__":
     proc = HDDir()
-    proc.del_old(num=8, mode="usb")  # num=3, mode="usb"
+    proc.del_old(num=3, mode="usb")  # num=3, mode="usb"
     proc.del_old(num=8, mode="hd")  # num=8, mode="hd"
     proc.start_copy()
