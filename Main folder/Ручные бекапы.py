@@ -121,9 +121,9 @@ class HDDir:
             date, path = sorted(temp.items(), key=lambda x: x[0], reverse=True)[0]
             name_file = path.rsplit(os.sep, 1)[-1]
             if key in ["Бухгалтерия", "ЗУП", "Охрана труда", "Торговля"]:
-                # new_full_path = os.path.join(self.__dir_hd_with_path.get(key), name_file)
-                # if not os.path.exists(new_full_path):
-                #     Thread(target=self.my_copy, args=(path, new_full_path, key)).start()
+                new_full_path = os.path.join(self.__dir_hd_with_path.get(key), name_file)
+                if not os.path.exists(new_full_path):
+                    Thread(target=self.my_copy, args=(path, new_full_path, key)).start()
                 continue
             elif key == "Бухгалтерия 2":
                 new_full_path = os.path.join(self.__dir_hd_with_path.get("Бухгалтерия"), name_file)
