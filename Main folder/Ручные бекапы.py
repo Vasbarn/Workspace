@@ -1,7 +1,8 @@
 import os
 import shutil
+import time
 from threading import Thread
-from datetime import datetime
+import datetime
 
 class HDDir:
     def __init__(self):
@@ -112,7 +113,6 @@ class HDDir:
         return result
 
     def start_copy(self):
-        result = dict()
         for key, value in self.get_all_wanted_files_disk().items():
             temp = dict()
             for path_file in value:
@@ -130,17 +130,35 @@ class HDDir:
                 if not os.path.exists(new_full_path):
                     Thread(target=self.my_copy, args=(path, new_full_path, key)).start()
 
+    def get_name_last_file(self):
+        result = dict()
+        for key, value in self.get_all_wanted_files_disk().items():
+            temp = dict()
+            for path_file in value:
+                date_create = os.path.getctime(path_file)
+                temp[date_create] = path_file
+            date, path = sorted(temp.items(), key=lambda x: x[0], reverse=True)[0]
+            name_file = path.rsplit(os.sep, 1)[-1]
+            result[key] = name_file
+            print("|{}| {}: {}".format(datetime.datetime.fromtimestamp(date,
+                                                                       tz=datetime.UTC).strftime("%d.%m.%Y"),
+                                       key,
+                                       name_file))
+        return result
+
     @staticmethod
     def my_copy(path, new_full_path, key):
-        t1 = datetime.now()
+        t1 = datetime.datetime.now()
         print(f"{key} начало копирования в {t1}")
         shutil.copy(path, new_full_path)
-        t2 = datetime.now()
+        t2 = datetime.datetime.now()
         print(f"{key} завершение копирования в {t2} | Длительность {round((t2 - t1).total_seconds() / 60, 3)} минут")
 
 
 if __name__ == "__main__":
     proc = HDDir()
-    proc.del_old(num=3, mode="usb")  # num=3, mode="usb"
-    proc.del_old(num=8, mode="hd")  # num=8, mode="hd"
-    proc.start_copy()
+    proc.get_name_last_file()
+    if input("Хотите начать копирование?\nВведите 1 = да, все остальное = нет:\n") == "1":
+        proc.del_old(num=2, mode="usb")  # num=3, mode="usb"
+        proc.del_old(num=8, mode="hd")  # num=8, mode="hd"
+        proc.start_copy()
