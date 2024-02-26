@@ -1,6 +1,5 @@
 import os
 import shutil
-import time
 from threading import Thread
 import datetime
 
