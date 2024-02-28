@@ -1,5 +1,7 @@
 import requests
 import json
+import pandas as pd
+
 
 class BitrixConnector:
 
@@ -50,18 +52,46 @@ class BitrixConnector:
                 list_elements.extend(response.get("result"))
         return result
 
+    def get_workers(self, data: dict = None, ):
+        """Получаем всех сотрудников из указанных подразделений из битрикса"""
+        result = []
+        with requests.Session() as session:
+            response = session.post(
+                url=self.__query_url.format(
+                    key=self.__api_keys.get("user"),
+                    method="user.get.json"
+                ),
+                data=json.dumps(data),
+                headers=self.__headers
+            ).json()
+            result.extend(response.get("result"))
+            while response.get("next"):
+                data['start'] = response.get("next")
+                response = session.post(
+                    url=self.__query_url.format(
+                        key=self.__api_keys.get("user"),
+                        method="user.get.json"
+                    ),
+                    data=json.dumps(data),
+                    headers=self.__headers
+                ).json()
+                result.extend(response.get("result"))
+        return result
 
-method = "lists.element.get"
-key = "fdrwucecw1uvpel1"
-url = f"https://bitrix.tg-alterra.ru/rest/1166/{key}/{method}"
+
 if __name__ == "__main__":
-    answer = {}
-    cls = BitrixConnector(dict(lists="fdrwucecw1uvpel1"), "https://bitrix.tg-alterra.ru/rest/1166/")
-    answer["BP"] = cls.get_elements_from_list(
-        {'IBLOCK_TYPE_ID': 'bitrix_processes',
-         'IBLOCK_ID': '182',}
-    )
-    answer["BP2"] = cls.get_elements_from_list(
+    cls = BitrixConnector(dict(lists="fdrwucecw1uvpel1", user="vqxmfrmo0ewoupy7"),
+                          "https://bitrix.tg-alterra.ru/rest/1166/")
+    # bizproc = cls.get_elements_from_list(
+    #     {'IBLOCK_TYPE_ID': 'bitrix_processes',
+    #      'IBLOCK_ID': '182',}
+    # )
+    records_list = cls.get_elements_from_list(
         {'IBLOCK_TYPE_ID': 'lists_socnet',
          'IBLOCK_ID': '178', }
     )
+    # bizproc_fields = pd.DataFrame(bizproc["fields"])
+    # bizproc_data = pd.DataFrame(bizproc["data"])
+    records_list_fields = pd.DataFrame(records_list["fields"])
+    records_list_data = pd.DataFrame(records_list["data"])
+    users = pd.DataFrame(cls.get_workers({}))
